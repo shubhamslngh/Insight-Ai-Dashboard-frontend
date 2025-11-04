@@ -2,7 +2,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
@@ -10,8 +9,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { getTasks, patchTask, deleteTask } from "../lib/api";
-import { Pencil, Trash2, ArrowUpDown } from "lucide-react";
+import { Loader2, Pencil, Trash2, Check, X, ArrowUpDown } from "lucide-react";
 
 export default function TaskList({ refreshTrigger, projectId, onTasksUpdate }) {
   const [tasks, setTasks] = useState([]);
@@ -19,6 +19,9 @@ export default function TaskList({ refreshTrigger, projectId, onTasksUpdate }) {
   const [filterPriority, setFilterPriority] = useState("all");
   const [sortKey, setSortKey] = useState("created_at");
   const [sortDir, setSortDir] = useState("desc");
+  const [loadingId, setLoadingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   async function load() {
     if (!projectId) return;
@@ -33,23 +36,36 @@ export default function TaskList({ refreshTrigger, projectId, onTasksUpdate }) {
   }, [refreshTrigger, projectId]);
 
   async function toggleComplete(id, checked) {
+    setLoadingId(id);
     await patchTask(id, { status: checked ? "completed" : "pending" });
-    load();
+    await load();
+    setLoadingId(null);
   }
 
   async function remove(id) {
+    setLoadingId(id);
     await deleteTask(id);
-    load();
+    await load();
+    setLoadingId(null);
   }
 
-  async function editText(id, newText) {
-    await patchTask(id, { text: newText });
-    load();
+  async function saveEdit(id) {
+    if (!editText.trim()) {
+      setEditingId(null);
+      return;
+    }
+    setLoadingId(id);
+    await patchTask(id, { text: editText });
+    await load();
+    setEditingId(null);
+    setLoadingId(null);
   }
 
   async function editPriority(id, newPriority) {
+    setLoadingId(id);
     await patchTask(id, { priority: newPriority });
-    load();
+    await load();
+    setLoadingId(null);
   }
 
   // ---------- Filtering ----------
@@ -161,27 +177,51 @@ export default function TaskList({ refreshTrigger, projectId, onTasksUpdate }) {
               ? "bg-green-50 border-green-200"
               : "bg-white hover:bg-gray-50"
           }`}>
-          <div className="flex gap-3 items-start">
+          <div className="flex gap-3 items-start w-full">
             <Checkbox
               checked={t.status === "completed"}
               onCheckedChange={(c) => toggleComplete(t.id, c)}
+              disabled={loadingId === t.id}
             />
-            <div>
-              <p
-                className={`font-medium ${
-                  t.status === "completed"
-                    ? "line-through text-gray-400"
-                    : "text-gray-800"
-                }`}>
-                {t.text}
-              </p>
+            <div className="flex flex-col w-full">
+              {editingId === t.id ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="h-8"
+                    autoFocus
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => saveEdit(t.id)}>
+                    <Check className="w-4 h-4 text-green-600" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setEditingId(null)}>
+                    <X className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+              ) : (
+                <p
+                  className={`font-medium ${
+                    t.status === "completed"
+                      ? "line-through text-gray-400"
+                      : "text-gray-800"
+                  }`}>
+                  {t.text}
+                </p>
+              )}
 
-              {/* Inline editable priority dropdown */}
               <Select
                 value={t.priority || "None"}
                 onValueChange={(val) =>
                   editPriority(t.id, val === "None" ? null : val)
-                }>
+                }
+                disabled={loadingId === t.id}>
                 <SelectTrigger
                   className={`h-7 w-[110px] mt-1 text-xs ${badgeColor(
                     t.priority
@@ -198,20 +238,29 @@ export default function TaskList({ refreshTrigger, projectId, onTasksUpdate }) {
             </div>
           </div>
 
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const newText = prompt("Edit task:", t.text);
-                if (newText && newText.trim() !== t.text)
-                  editText(t.id, newText);
-              }}>
-              <Pencil size={16} />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => remove(t.id)}>
-              <Trash2 size={16} />
-            </Button>
+          <div className="flex gap-1 items-center">
+            {loadingId === t.id ? (
+              <Loader2 className="animate-spin text-gray-400 w-4 h-4" />
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingId(t.id);
+                    setEditText(t.text);
+                  }}>
+                  <Pencil size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => remove(t.id)}
+                  disabled={loadingId === t.id}>
+                  <Trash2 size={16} />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       ))}
