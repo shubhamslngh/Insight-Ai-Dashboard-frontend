@@ -183,10 +183,8 @@ PATCH	/tasks/{id}	Update task
 DELETE	/tasks/{id}	Delete task
 🧑‍💻 Author
 
-Shivam Singh
 💼 Full-Stack Developer — Tech Initiator
 🌐 Building AI-driven dashboards, analytics & automation tools
-📧 shivamsingh.dev@example.com
 
 🏁 License
 
