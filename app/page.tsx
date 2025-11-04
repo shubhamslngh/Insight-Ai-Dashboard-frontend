@@ -24,7 +24,7 @@ export default function HomePage() {
   }, []);
 
   // ✅ Handle project selection
-  async function handleProjectSelect(projectId) {
+  async function handleProjectSelect(projectId: string) {
     setSelectedProject(projectId);
     if (!projectId) {
       setTasks([]);
@@ -34,6 +34,7 @@ export default function HomePage() {
     const res = await getTasksByProject(projectId);
     setTasks(res.tasks || []);
   }
+
 
   return (
     <main className= "px-6 py-10 max-w-5xl mx-auto space-y-10" >
