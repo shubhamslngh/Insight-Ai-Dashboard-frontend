@@ -15,7 +15,7 @@ import {
 
 export default function HomePage() {
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [tasks, setTasks] = useState([]);
 
   // ✅ Load all projects initially
