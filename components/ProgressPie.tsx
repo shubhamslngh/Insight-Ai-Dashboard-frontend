@@ -8,7 +8,18 @@ import {
   Legend,
 } from "recharts";
 
-export default function ProgressPie({ tasks = [] }) {
+interface Task {
+  id: string;
+  text: string;
+  status: "pending" | "completed";
+  priority?: "High" | "Medium" | "Low";
+}
+
+interface ProgressPieProps {
+  tasks: Task[];
+}
+
+export default function ProgressPie({ tasks }: ProgressPieProps) {
   const completed = tasks.filter((t) => t.status === "completed").length;
   const pending = tasks.length - completed;
 
@@ -20,7 +31,6 @@ export default function ProgressPie({ tasks = [] }) {
   const COLORS = ["#10b981", "#f59e0b"];
 
   return (
-    // ✅ wrapper ensures measurable container
     <div className="w-full h-64 min-w-0">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <PieChart>

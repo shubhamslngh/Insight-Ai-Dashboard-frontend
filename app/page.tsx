@@ -12,9 +12,12 @@ import {
   SelectContent,
   SelectItem,
 } from "../components/ui/select";
-
+interface Project {
+  id: string;
+  name: string;
+}
 export default function HomePage() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [tasks, setTasks] = useState([]);
 
@@ -81,8 +84,9 @@ export default function HomePage() {
     {/* Transcript submission */ }
     < div className = "rounded-2xl border p-5 bg-white/70 backdrop-blur-sm" >
       <h2 className="font-semibold mb-4" > Transcript Submission </h2>
-        < TranscriptForm onNewTasks = {() => handleProjectSelect(selectedProject)
+    < TranscriptForm onNewTasks = {() => handleProjectSelect(selectedProject ?? "")
 } />
+
   </div>
 
 {/* Charts */ }
